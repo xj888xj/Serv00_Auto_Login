@@ -9,21 +9,20 @@ on:
 env:
   ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}
 
-jobs:  
-  login:  
-    runs-on: ubuntu-latest  
-  
-    steps:  
-      - name: Checkout repository  
-        uses: actions/checkout@v3  
-  
-      - name: Set up Node.js  
-        uses: actions/setup-node@v3  
-        with:  
-          node-version: '20.x'  
-  
-      - name: Install dependencies  
-        run: npm install puppeteer  
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14' # 或您需要的 Node.js 版本
+
+      - name: Install dependencies
+        run: npm install
   
       - name: Create accounts.json  
         run: echo "$ACCOUNTS_JSON" > accounts.json  
