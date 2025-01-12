@@ -5,6 +5,11 @@ const axios = require('axios');
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 
+if (!TELEGRAM_BOT_TOKEN || !CHAT_ID) {
+  console.error('请设置 TELEGRAM_BOT_TOKEN 和 CHAT_ID 环境变量');
+  return;
+}
+
 function formatToISO(date) {
   return date.toISOString().replace('T', ' ').replace('Z', '').replace(/\.\d{3}Z/, '');
 }
@@ -15,11 +20,15 @@ async function delayTime(ms) {
 
 async function sendTelegramMessage(message) {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-  await axios.post(url, {
-    chat_id: CHAT_ID,
-    text: message,
-    parse_mode: 'HTML',
-  });
+  try {
+    await axios.post(url, {
+      chat_id: CHAT_ID,
+      text: message,
+      parse_mode: 'HTML',
+    });
+  } catch (error) {
+    console.error('发送 Telegram 消息时出错:', error);
+  }
 }
 
 (async () => {
@@ -32,10 +41,10 @@ async function sendTelegramMessage(message) {
     return;
   }
 
-  for (const account of accounts) {
+  await Promise.all(accounts.map(async (account) => {
     const { username, password, panelnum } = account;
 
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch({ headless: true }); // 生产环境
     const page = await browser.newPage();
 
     let url = `https://panel${panelnum}.serv00.com/login/?next=/`;
@@ -81,7 +90,7 @@ async function sendTelegramMessage(message) {
       const delay = Math.floor(Math.random() * 8000) + 1000;
       await delayTime(delay);
     }
-  }
+  }));
 
   console.log('所有账号登录完成！');
 })();
