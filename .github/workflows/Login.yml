@@ -17,9 +17,6 @@ jobs:
         with:
           node-version: '20' # 或更高版本
 
-      - name: Install dependencies
-        run: npm install # 安装所有依赖
-
       - name: Create package.json
         run: |
           echo '{}' > package.json
@@ -27,13 +24,12 @@ jobs:
           npm install puppeteer axios dotenv
 
       - name: Create accounts.json  
-        run: echo "$ACCOUNTS_JSON" > accounts.json  
+        run: echo "${{ secrets.ACCOUNTS_JSON }}" > accounts.json  
 
       - name: Run Puppeteer Script
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-          ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}
         run: |
           set -e  
           xvfb-run --server-args="-screen 0 1280x1024x24" node login.js
