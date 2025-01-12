@@ -23,6 +23,9 @@ jobs:
           npm init -y
           npm install puppeteer axios dotenv jq
 
+      - name: Debug ACCOUNTS_JSON
+        run: echo "${{ secrets.ACCOUNTS_JSON }}"
+
       - name: Create accounts.json  
         run: echo "${{ secrets.ACCOUNTS_JSON }}" | jq . > accounts.json
 
