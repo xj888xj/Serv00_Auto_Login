@@ -19,8 +19,6 @@ jobs:
 
       - name: Create package.json
         run: |
-          echo '{}' > package.json
-          npm init -y
           npm install puppeteer axios dotenv
 
       - name: Create accounts.json  
