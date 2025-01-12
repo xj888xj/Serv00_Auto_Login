@@ -6,8 +6,7 @@ on:
   schedule:
     - cron: '41 9 7 * *'
 
-env:
-  ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}
+
 
 jobs:
   run-script:
@@ -31,6 +30,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
+          ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}
   
       - name: Login to website  
         run: |  
