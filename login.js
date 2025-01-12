@@ -44,7 +44,11 @@ async function sendTelegramMessage(message) {
   await Promise.all(accounts.map(async (account) => {
     const { username, password, panelnum } = account;
 
-    const browser = await puppeteer.launch({ headless: true }); // 生产环境
+    // 启动浏览器并添加 --no-sandbox 选项
+    const browser = await puppeteer.launch({
+      headless: true, // 生产环境
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const page = await browser.newPage();
 
     let url = `https://panel${panelnum}.serv00.com/login/?next=/`;
