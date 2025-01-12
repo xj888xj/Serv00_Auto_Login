@@ -19,8 +19,8 @@ jobs:
           node-version: '14' # 或您需要的 Node.js 版本
 
       - name: Install dependencies
-        run: npm install
-  
+        run: npm install puppeteer # 确保安装 Puppeteer
+
       - name: Create accounts.json  
         run: echo "$ACCOUNTS_JSON" > accounts.json  
 
