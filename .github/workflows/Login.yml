@@ -15,7 +15,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20' # 或更高版本
+          node-version: '20'
 
       - name: Create package.json
         run: |
@@ -24,7 +24,10 @@ jobs:
           npm install puppeteer axios dotenv
 
       - name: Create accounts.json  
-        run: echo "${{ secrets.ACCOUNTS_JSON }}" > accounts.json  
+        run: printf "%s" "${{ secrets.ACCOUNTS_JSON }}" > accounts.json  
+
+      - name: Debug accounts.json
+        run: cat accounts.json
 
       - name: Run Puppeteer Script
         env:
