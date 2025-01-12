@@ -1,5 +1,9 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
+const axios = require('axios'); // 用于发送 HTTP 请求
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // 从环境变量获取 Bot Token
+const CHAT_ID = process.env.CHAT_ID; // 从环境变量获取 Chat ID
 
 function formatToISO(date) {
   return date.toISOString().replace('T', ' ').replace('Z', '').replace(/\.\d{3}Z/, '');
@@ -9,8 +13,16 @@ async function delayTime(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function sendTelegramMessage(message) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  await axios.post(url, {
+    chat_id: CHAT_ID,
+    text: message,
+    parse_mode: 'HTML', // 可选，支持 HTML 格式
+  });
+}
+
 (async () => {
-  // 读取 accounts.json 中的 JSON 字符串
   const accountsJson = fs.readFileSync('accounts.json', 'utf-8');
   const accounts = JSON.parse(accountsJson);
 
@@ -23,21 +35,17 @@ async function delayTime(ms) {
     let url = `https://panel${panelnum}.serv00.com/login/?next=/`;
 
     try {
-      // 修改网址为新的登录页面
-      await page.goto(url);
+      await page.goto(url, { waitUntil: 'networkidle2' });
 
-      // 清空用户名输入框的原有值
       const usernameInput = await page.$('#id_username');
       if (usernameInput) {
-        await usernameInput.click({ clickCount: 3 }); // 选中输入框的内容
-        await usernameInput.press('Backspace'); // 删除原来的值
+        await usernameInput.click({ clickCount: 3 });
+        await usernameInput.press('Backspace');
       }
 
-      // 输入实际的账号和密码
       await page.type('#id_username', username);
       await page.type('#id_password', password);
 
-      // 提交登录表单
       const loginButton = await page.$('#submit');
       if (loginButton) {
         await loginButton.click();
@@ -45,40 +53,35 @@ async function delayTime(ms) {
         throw new Error('无法找到登录按钮');
       }
 
-      // 等待登录成功（如果有跳转页面的话）
-      await page.waitForNavigation();
+      await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
-      // 判断是否登录成功
       const isLoggedIn = await page.evaluate(() => {
-        const logoutButton = document.querySelector('a[href="/logout/"]');
-        return logoutButton !== null;
+        return document.querySelector('a[href="/logout/"]') !== null;
       });
 
+      const nowUtc = formatToISO(new Date());
+      const nowBeijing = formatToISO(new Date(new Date().getTime() + 8 * 60 * 60 * 1000));
+
       if (isLoggedIn) {
-        // 获取当前的UTC时间和北京时间
-        const nowUtc = formatToISO(new Date());// UTC时间
-        const nowBeijing = formatToISO(new Date(new Date().getTime() + 8 * 60 * 60 * 1000)); // 北京时间东8区，用算术来搞
-        console.log(`账号 ${username} 于北京时间 ${nowBeijing}（UTC时间 ${nowUtc}）登录成功！`);
+        const successMessage = `账号 ${username} 于北京时间 ${nowBeijing}（UTC时间 ${nowUtc}）登录成功！`;
+        console.log(successMessage);
+        await sendTelegramMessage(successMessage); // 发送成功消息
       } else {
-        console.error(`账号 ${username} 登录失败，请检查账号和密码是否正确。`);
+        const failureMessage = `账号 ${username} 登录失败，请检查账号和密码是否正确。`;
+        console.error(failureMessage);
+        await sendTelegramMessage(failureMessage); // 发送失败消息
       }
     } catch (error) {
-      console.error(`账号 ${username} 登录时出现错误: ${error}`);
+      const errorMessage = `账号 ${username} 登录时出现错误: ${error}`;
+      console.error(errorMessage);
+      await sendTelegramMessage(errorMessage); // 发送错误消息
     } finally {
-      // 关闭页面和浏览器
       await page.close();
       await browser.close();
-
-      // 用户之间添加随机延时
-      const delay = Math.floor(Math.random() * 8000) + 1000; // 随机延时1秒到8秒之间
+      const delay = Math.floor(Math.random() * 8000) + 1000;
       await delayTime(delay);
     }
   }
 
   console.log('所有账号登录完成！');
 })();
-
-// 自定义延时函数
-function delayTime(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
