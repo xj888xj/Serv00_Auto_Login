@@ -1,4 +1,4 @@
-name: Login
+name: 用户登录
 
 on:
   workflow_dispatch:
@@ -12,25 +12,26 @@ env:
   CHAT_ID: ${{ secrets.CHAT_ID }}
 
 jobs:  
-  login:  
+  user_login:  
     runs-on: ubuntu-latest  
   
     steps:  
-      - name: Checkout repository  
+      - name: 检出代码库  
         uses: actions/checkout@v3  
   
-      - name: Set up Node.js  
+      - name: 设置 Node.js  
         uses: actions/setup-node@v3  
         with:  
           node-version: '20.x'  
   
-      - name: Install dependencies  
-        run: npm install puppeteer  
+      - name: 安装依赖  
+        run: npm install puppeteer axios  # 确保安装 axios  
   
-      - name: Create accounts.json  
+      - name: 创建 accounts.json  
         run: echo "$ACCOUNTS_JSON" > accounts.json  
   
-      - name: Login to website  
+      - name: 登录网站  
         run: |  
-          set -e  
+          set -e  # 出错时退出
+          echo "开始登录过程..."
           xvfb-run --server-args="-screen 0 1280x1024x24" node login.js
