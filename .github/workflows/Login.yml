@@ -21,10 +21,10 @@ jobs:
         run: |
           echo '{}' > package.json
           npm init -y
-          npm install puppeteer axios dotenv
+          npm install puppeteer axios dotenv jq
 
       - name: Create accounts.json  
-        run: printf "%s" "${{ secrets.ACCOUNTS_JSON }}" > accounts.json  
+        run: echo "${{ secrets.ACCOUNTS_JSON }}" | jq . > accounts.json
 
       - name: Debug accounts.json
         run: cat accounts.json
