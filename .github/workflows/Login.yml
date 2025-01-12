@@ -20,6 +20,12 @@ jobs:
       - name: Install dependencies
         run: npm install # 安装所有依赖
 
+      - name: Create package.json
+        run: |
+          echo '{}' > package.json
+          npm init -y
+          npm install puppeteer axios dotenv
+
       - name: Create accounts.json  
         run: echo "$ACCOUNTS_JSON" > accounts.json  
 
