@@ -1,3 +1,5 @@
+npm install axios --save
+
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 const axios = require('axios'); // 用于发送 HTTP 请求
