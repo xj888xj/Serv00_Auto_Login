@@ -1,9 +1,9 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
-const axios = require('axios'); // 用于发送 HTTP 请求
+const axios = require('axios');
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // 从环境变量获取 Bot Token
-const CHAT_ID = process.env.CHAT_ID; // 从环境变量获取 Chat ID
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const CHAT_ID = process.env.CHAT_ID;
 
 function formatToISO(date) {
   return date.toISOString().replace('T', ' ').replace('Z', '').replace(/\.\d{3}Z/, '');
@@ -18,13 +18,19 @@ async function sendTelegramMessage(message) {
   await axios.post(url, {
     chat_id: CHAT_ID,
     text: message,
-    parse_mode: 'HTML', // 可选，支持 HTML 格式
+    parse_mode: 'HTML',
   });
 }
 
 (async () => {
-  const accountsJson = fs.readFileSync('accounts.json', 'utf-8');
-  const accounts = JSON.parse(accountsJson);
+  let accounts;
+  try {
+    const accountsJson = fs.readFileSync('accounts.json', 'utf-8');
+    accounts = JSON.parse(accountsJson);
+  } catch (error) {
+    console.error('读取 accounts.json 时出错:', error);
+    return;
+  }
 
   for (const account of accounts) {
     const { username, password, panelnum } = account;
@@ -36,12 +42,6 @@ async function sendTelegramMessage(message) {
 
     try {
       await page.goto(url, { waitUntil: 'networkidle2' });
-
-      const usernameInput = await page.$('#id_username');
-      if (usernameInput) {
-        await usernameInput.click({ clickCount: 3 });
-        await usernameInput.press('Backspace');
-      }
 
       await page.type('#id_username', username);
       await page.type('#id_password', password);
@@ -65,16 +65,16 @@ async function sendTelegramMessage(message) {
       if (isLoggedIn) {
         const successMessage = `账号 ${username} 于北京时间 ${nowBeijing}（UTC时间 ${nowUtc}）登录成功！`;
         console.log(successMessage);
-        await sendTelegramMessage(successMessage); // 发送成功消息
+        await sendTelegramMessage(successMessage);
       } else {
         const failureMessage = `账号 ${username} 登录失败，请检查账号和密码是否正确。`;
         console.error(failureMessage);
-        await sendTelegramMessage(failureMessage); // 发送失败消息
+        await sendTelegramMessage(failureMessage);
       }
     } catch (error) {
       const errorMessage = `账号 ${username} 登录时出现错误: ${error}`;
       console.error(errorMessage);
-      await sendTelegramMessage(errorMessage); // 发送错误消息
+      await sendTelegramMessage(errorMessage);
     } finally {
       await page.close();
       await browser.close();
