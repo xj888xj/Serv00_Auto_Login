@@ -27,6 +27,11 @@ jobs:
   
       - name: Create accounts.json  
         run: echo "$ACCOUNTS_JSON" > accounts.json  
+
+      - name: Run Puppeteer Script
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
   
       - name: Login to website  
         run: |  
